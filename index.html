@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>물리 운동 그래프 분석기</title>
+
+<link rel="stylesheet" href="first.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+<div class="container">
+  <h1>📊 물리 운동 그래프 분석기</h1>
+
+  <!-- 운동 선택 -->
+  <div class="box">
+    <label>운동 선택</label>
+    <select id="motionType">
+      <option value="uniform">등속 직선 운동</option>
+      <option value="accelerated">등가속도 직선 운동</option>
+      <option value="projectile">포물선 운동</option>
+    </select>
+  </div>
+
+  <!-- 그래프 선택 -->
+  <div class="box">
+    <label>그래프 선택</label>
+    <select id="graphType">
+      <option value="xt">위치 - 시간</option>
+      <option value="vt">속도 - 시간</option>
+      <option value="xy">포물선 (x - y)</option>
+    </select>
+  </div>
+
+  
+  <!-- 입력 영역 -->
+  <div class="inputs">
+
+    <div class="input-group">
+      <label>초기 위치 x₀ (m)</label>
+      <input type="number" id="x0" value="0">
+    </div>
+
+    <div class="input-group">
+      <label>초기 속도 v₀ (m/s)</label>
+      <input type="number" id="v0" value="10">
+    </div>
+
+    <div class="input-group">
+      <label>가속도 a (m/s²)</label>
+      <input type="number" id="a" value="0">
+    </div>
+
+    <div class="input-group">
+      <label>총 시간 (s)</label>
+      <input type="number" id="totalTime" value="5">
+    </div>
+
+    <div class="input-group">
+      <label>시간 간격 Δt (s)</label>
+      <input type="number" id="dt" value="0.1" step="0.05">
+    </div>
+
+    <!-- 포물선 전용 -->
+    <div class="input-group">
+      <label>초기 y값 (m)</label>
+      <input type="number" id="y0" value="0">
+    </div>
+
+    <div class="input-group">
+      <label>발사 각도 (도)</label>
+      <input type="number" id="angle" value="45">
+    </div>
+
+    <div class="input-group">
+      <label>x 최대값 (m)</label>
+      <input type="number" id="xMax" value="20">
+    </div>
+
+    <div class="input-group">
+      <label>x 간격 Δx (m)</label>
+      <input type="number" id="dx" value="0.2">
+    </div>
+
+  </div>
+
+  <button onclick="drawGraph()">그래프 그리기</button>
+
+  <canvas id="chart"></canvas>
+</div>
+
+<script>
+let chart;
+
+const graphType = document.getElementById("graphType");
+const motionType = document.getElementById("motionType");
+
+const x0 = document.getElementById("x0");
+const v0 = document.getElementById("v0");
+const a = document.getElementById("a");
+const totalTime = document.getElementById("totalTime");
+const dt = document.getElementById("dt");
+
+const y0 = document.getElementById("y0");
+const angle = document.getElementById("angle");
+const xMax = document.getElementById("xMax");
+const dx = document.getElementById("dx");
+
+function disableAll() {
+  [
+    x0, v0, a, totalTime, dt,
+    y0, angle, xMax, dx
+  ].forEach(e => e.disabled = true);
+}
+
+function updateInputs() {
+  disableAll();
+
+  // 직선 운동
+  if (graphType.value !== "xy") {
+    v0.disabled = false;
+    totalTime.disabled = false;
+    dt.disabled = false;
+
+    if (graphType.value === "xt") x0.disabled = false;
+    if (motionType.value === "accelerated") a.disabled = false;
+  }
+
+  // 포물선 운동
+  if (graphType.value === "xy" && motionType.value === "projectile") {
+    v0.disabled = false;
+    angle.disabled = false;
+    y0.disabled = false;
+    xMax.disabled = false;
+    dx.disabled = false;
+  }
+}
+
+graphType.addEventListener("change", updateInputs);
+motionType.addEventListener("change", updateInputs);
+updateInputs();
+
+function drawGraph() {
+  let X = [], Y = [];
+  let title = "", xLabel = "", yLabel = "";
+
+  // 위치 - 시간
+  if (graphType.value === "xt") {
+    xLabel = "시간 (s)";
+    yLabel = "위치 (m)";
+    title = "위치 - 시간 그래프";
+
+    for (let t = 0; t <= totalTime.value; t += +dt.value) {
+      X.push(t);
+      if (motionType.value === "uniform")
+        Y.push(+x0.value + +v0.value * t);
+      else
+        Y.push(+x0.value + +v0.value * t + 0.5 * +a.value * t * t);
+    }
+  }
+
+  // 속도 - 시간
+  if (graphType.value === "vt") {
+    xLabel = "시간 (s)";
+    yLabel = "속도 (m/s)";
+    title = "속도 - 시간 그래프";
+
+    for (let t = 0; t <= totalTime.value; t += +dt.value) {
+      X.push(t);
+      Y.push(
+        motionType.value === "uniform"
+          ? +v0.value
+          : +v0.value + +a.value * t
+      );
+    }
+  }
+
+  // 포물선 x - y
+  if (graphType.value === "xy") {
+    xLabel = "x 위치 (m)";
+    yLabel = "y 위치 (m)";
+    title = "포물선 운동 (x - y)";
+    const g = 9.8;
+    const rad = angle.value * Math.PI / 180;
+
+    for (let x = 0; x <= xMax.value; x += +dx.value) {
+      const t = x / (v0.value * Math.cos(rad));
+      const y = +y0.value
+        + v0.value * Math.sin(rad) * t
+        - 0.5 * g * t * t;
+
+      if (y >= 0) {
+        X.push(x);
+        Y.push(y);
+      }
+    }
+  }
+
+  if (chart) chart.destroy();
+
+  chart = new Chart(document.getElementById("chart"), {
+    type: "line",
+    data: {
+      labels: X,
+      datasets: [{
+        data: Y,
+        borderWidth: 2,
+        pointRadius: 2
+      }]
+    },
+    options: {
+      plugins: { title: { display: true, text: title }},
+      scales: {
+        x: { title: { display: true, text: xLabel }},
+        y: { title: { display: true, text: yLabel }}
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
