@@ -1,5 +1,5 @@
 body {
-  background: #eef2ff;
+  background: #eefbdf;
   font-family: 'Segoe UI', sans-serif;
 }
 
@@ -14,7 +14,7 @@ body {
 
 h1 {
   text-align: center;
-  color: #3a4ca8;
+  color: #6b7e4d;
 }
 
 .box {
@@ -49,7 +49,7 @@ button {
   margin-top: 20px;
   width: 100%;
   padding: 12px;
-  background: #4a63ff;
+  background: #9eb27f;
   color: white;
   border: none;
   border-radius: 10px;
@@ -58,9 +58,10 @@ button {
 }
 
 button:hover {
-  background: #3649d8;
+  background: #829966;
 }
 
 canvas {
   margin-top: 25px;
 }
+
